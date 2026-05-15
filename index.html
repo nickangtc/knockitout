@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knock It Out</title>
+  <meta name="description"
+    content="Knock It Out helps you capture what you mean to knock out this session, keep it visible, and clear it before distractions take over.">
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b0c10;
+      color: #f5f5f5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(93, 95, 239, 0.28), transparent 24rem),
+        #05060a;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      width: min(100% - 2rem, 960px);
+      margin: 0 auto;
+      padding: clamp(2rem, 6vh, 4rem) 0 1.25rem;
+    }
+
+    .brand {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+
+    main {
+      display: grid;
+      min-height: 0;
+      place-items: center;
+      padding: clamp(2rem, 6vh, 4rem) 1rem;
+      text-align: center;
+    }
+
+    .hero {
+      max-width: 720px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(3.5rem, 12vw, 8rem);
+      line-height: 0.9;
+      letter-spacing: -0.08em;
+    }
+
+    p {
+      margin: 1.5rem auto 0;
+      max-width: 620px;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: clamp(1.05rem, 2vw, 1.35rem);
+      line-height: 1.55;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      margin-top: 2rem;
+      min-width: 9rem;
+      border-radius: 999px;
+      background: #f5f5f5;
+      color: #0b0c10;
+      padding: 0.85rem 1.25rem;
+      font-weight: 700;
+    }
+
+    footer {
+      width: min(100% - 2rem, 960px);
+      margin: 0 auto;
+      padding: 1.25rem 0 clamp(2rem, 6vh, 4rem);
+      color: rgba(255, 255, 255, 0.52);
+      font-size: 0.95rem;
+      text-align: left;
+    }
+
+    footer a {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a class="brand" href="/">Knock It Out</a>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <p>Knock It Out exists to help you declare what you opened your computer to do, so you knock those things out
+        instead of getting distracted by all the shiny things.</p>
+      <a class="cta" href="https://github.com/nickangtc/knockitout" aria-label="Download from GitHub">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <path
+            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.65 7.65 0 0 1 8 3.86c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+        </svg>
+        Download
+      </a>
+    </section>
+  </main>
+
+  <footer>Made by <a href="https://nickang.com">Nick Ang</a> for focused people.</footer>
+</body>
+
+</html>
