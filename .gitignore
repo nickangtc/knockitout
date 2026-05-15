@@ -1,0 +1,23 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Local app bundle builds
+build/
+*.app
+
+# Xcode / macOS
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcuserstate
+.DS_Store
+
+# Editor / local env
+.env
+.env.*
+*.log
+/tmp/
+
+# SwiftPM generated files
+Package.resolved
