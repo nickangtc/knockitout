@@ -51,6 +51,13 @@ Build outputs are ignored:
 
 ## Development commands
 
+After making code changes, run both the executable build and app bundle build automatically before reporting completion unless the user explicitly asks to skip builds:
+
+```bash
+swift build
+scripts/build-app.sh
+```
+
 Build executable:
 
 ```bash

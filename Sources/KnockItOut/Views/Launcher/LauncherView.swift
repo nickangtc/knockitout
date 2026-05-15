@@ -6,6 +6,14 @@ enum LauncherMode: Equatable {
     case editing(id: UUID, draft: String)
 }
 
+private struct SelectedLauncherRowBoundsPreferenceKey: PreferenceKey {
+    static let defaultValue: Anchor<CGRect>? = nil
+
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        value = nextValue() ?? value
+    }
+}
+
 struct LauncherView: View {
     @ObservedObject var store: KnockItemStore
     let close: () -> Void
@@ -47,6 +55,7 @@ struct LauncherView: View {
                         LazyVStack(spacing: 8) {
                             ForEach(Array(store.items.enumerated()), id: \.element.id) { index, item in
                                 row(item: item, index: index)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                     .id(item.id)
                             }
                         }
@@ -63,21 +72,33 @@ struct LauncherView: View {
         .padding(18)
         .background(.black.opacity(0.80), in: RoundedRectangle(cornerRadius: 22))
         .overlay(RoundedRectangle(cornerRadius: 22).stroke(.white.opacity(0.12)))
+        .overlayPreferenceValue(SelectedLauncherRowBoundsPreferenceKey.self) { anchor in
+            GeometryReader { geometry in
+                if let anchor {
+                    shortcutHints
+                        .position(x: geometry.size.width + 54, y: geometry[anchor].midY)
+                }
+            }
+        }
         .shadow(color: .black.opacity(0.35), radius: 28, y: 10)
         .onTapGesture { }
     }
 
     private func row(item: KnockItem, index: Int) -> some View {
         let selected = selectedIndex == index
-        return HStack(spacing: 10) {
+        let showsExternalHints = if case .selection = mode { selected } else { false }
+        let isEditing = if case .editing(let id, _) = mode { id == item.id } else { false }
+        return HStack(alignment: .top, spacing: 10) {
             Circle()
                 .fill(item.isActive ? Color.accentColor : .white.opacity(0.40))
                 .frame(width: 9, height: 9)
+                .padding(.top, 6)
             if case .editing(let id, let draft) = mode, id == item.id {
                 TextField("", text: Binding(
                     get: { draft },
                     set: { mode = .editing(id: id, draft: $0) }
-                ))
+                ), axis: .vertical)
+                .lineLimit(1...2)
                 .textFieldStyle(.plain)
                 .foregroundStyle(.white)
                 .focused($editFocused)
@@ -85,26 +106,31 @@ struct LauncherView: View {
                 .onAppear { editFocused = true }
             } else {
                 Text(item.title)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
+                    .lineLimit(1...2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .foregroundStyle(.white.opacity(selected ? 1 : 0.82))
-            }
-            Spacer()
-            if selected {
-                Text("[K] KO")
-                    .font(.caption.monospaced().weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.70))
-                Text("[E] Edit")
-                    .font(.caption.monospaced().weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.55))
             }
         }
         .padding(.horizontal, 12)
-        .frame(height: 38)
+        .padding(.vertical, 9)
+        .frame(maxWidth: .infinity, minHeight: 38, alignment: .leading)
         .background(selected ? Color.white.opacity(0.14) : Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 11))
         .overlay(RoundedRectangle(cornerRadius: 11).stroke(item.isActive ? Color.accentColor.opacity(0.75) : .clear))
         .contentShape(Rectangle())
-        .onTapGesture { mode = .selection(index: index); inputFocused = false }
+        .anchorPreference(key: SelectedLauncherRowBoundsPreferenceKey.self, value: .bounds) { showsExternalHints ? $0 : nil }
+        .onTapGesture { if !isEditing { mode = .selection(index: index); inputFocused = false } }
+    }
+
+    private var shortcutHints: some View {
+        HStack(spacing: 10) {
+            Text("[K]O")
+                .font(.caption.monospaced().weight(.semibold))
+                .foregroundStyle(.white.opacity(0.68))
+            Text("[E]dit")
+                .font(.caption.monospaced().weight(.semibold))
+                .foregroundStyle(.white.opacity(0.68))
+        }
     }
 
     private var isInputMode: Bool { if case .input = mode { true } else { false } }
