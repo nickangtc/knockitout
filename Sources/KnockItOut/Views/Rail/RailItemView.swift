@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct RailItemView: View {
@@ -6,34 +7,23 @@ struct RailItemView: View {
     @State private var hovering = false
     @State private var editing = false
     @State private var draft = ""
-    @State private var singleTapWork: DispatchWorkItem?
     @State private var clickPulse = false
+    @State private var koHovering = false
     @FocusState private var focused: Bool
 
     var body: some View {
         railElement
         .scaleEffect(clickPulse ? 1.07 : 1.0, anchor: .trailing)
-        .frame(height: expandedHeight + 6)
+        .frame(height: railElementHeight)
         .help(item.title)
         .accessibilityLabel(item.title)
         .contentShape(Rectangle())
         .pointingHandOnHover()
+        .overlay(alignment: .trailing) {
+            railClickSurface
+        }
         .onHover { isHovering in
             withAnimation(.easeInOut(duration: 0.16)) { hovering = isHovering }
-        }
-        .onTapGesture(count: 2) {
-            singleTapWork?.cancel()
-            performClickPulse()
-            beginEditing()
-        }
-        .onTapGesture(count: 1) {
-            performClickPulse()
-            let work = DispatchWorkItem {
-                withAnimation(.easeInOut(duration: 0.16)) { store.toggleActive(id: item.id) }
-            }
-            singleTapWork?.cancel()
-            singleTapWork = work
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.22, execute: work)
         }
         .animation(.easeInOut(duration: 0.18), value: hovering)
         .animation(.easeInOut(duration: 0.18), value: item.isActive)
@@ -44,22 +34,26 @@ struct RailItemView: View {
 
     private var expandedWidth: CGFloat {
         if editing { return 286 }
-        let textWidth = min(CGFloat(item.title.count) * 7.4 + 82, 286)
-        return max(112, textWidth)
+        let estimatedTitleWidth = min(CGFloat(item.title.count) * 7.4 + 12, 170)
+        return min(max(estimatedTitleWidth + 76, 136), 286)
     }
 
     private var expandedHeight: CGFloat {
-        isExpanded && item.title.count > 26 ? 60 : 42
+        42
     }
 
     private var titleWidth: CGFloat {
-        max(44, expandedWidth - 82)
+        max(44, expandedWidth - 76)
+    }
+
+    private var railElementHeight: CGFloat {
+        max(expandedHeight, 50) + 6
     }
 
     private var railElement: some View {
         ZStack(alignment: .trailing) {
             expandingCapsule
-                .frame(width: isExpanded ? expandedWidth : 50, height: isExpanded ? expandedHeight : 42, alignment: .trailing)
+                .frame(width: isExpanded ? expandedWidth : 50, height: isExpanded ? expandedHeight : 50, alignment: .trailing)
                 .clipShape(Capsule())
 
             pillContent
@@ -67,13 +61,30 @@ struct RailItemView: View {
                 .frame(width: expandedWidth, height: expandedHeight, alignment: .trailing)
                 .allowsHitTesting(isExpanded)
 
-            bubble
-                .opacity(isExpanded ? 0.18 : 1)
-                .scaleEffect(isExpanded ? 0.72 : 1, anchor: .trailing)
-                .allowsHitTesting(false)
         }
-        .frame(width: isExpanded ? expandedWidth : 50, height: expandedHeight + 6, alignment: .trailing)
+        .frame(width: isExpanded ? expandedWidth : 50, height: railElementHeight, alignment: .trailing)
         .clipped()
+    }
+
+    private var railClickSurface: some View {
+        HStack(spacing: 0) {
+            RailClickSurface(
+                onSingleClick: {
+                    performClickPulse()
+                    withAnimation(.easeInOut(duration: 0.10)) { store.toggleActive(id: item.id) }
+                },
+                onDoubleClick: {
+                    performClickPulse()
+                    beginEditing()
+                }
+            )
+            .frame(width: isExpanded ? max(44, expandedWidth - 50) : 50, height: railElementHeight)
+
+            if isExpanded {
+                Color.clear.frame(width: 50, height: railElementHeight)
+            }
+        }
+        .frame(width: isExpanded ? expandedWidth : 50, height: railElementHeight, alignment: .trailing)
     }
 
     private var expandingCapsule: some View {
@@ -86,7 +97,7 @@ struct RailItemView: View {
                     endPoint: .leading
                 )
             )
-            .overlay(Capsule().stroke(Color.white.opacity(item.isActive ? 0.74 : 0.34), lineWidth: item.isActive ? 2 : 1))
+            .overlay(Capsule().stroke(Color.white.opacity(item.isActive ? 0.86 : 0.34), lineWidth: item.isActive ? 2.6 : 1))
             .shadow(color: color.opacity(item.isActive ? 0.72 : 0.38), radius: item.isActive ? 20 : 12)
             .shadow(color: color.opacity(0.28), radius: 8)
     }
@@ -162,25 +173,29 @@ struct RailItemView: View {
                     }
             } else {
                 Text(item.title)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
+                    .lineLimit(1)
                     .truncationMode(.tail)
-                    .fixedSize(horizontal: false, vertical: true)
                     .frame(width: titleWidth, alignment: .leading)
             }
             Button("KO") { store.knockOut(id: item.id) }
                 .buttonStyle(.plain)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(koHovering ? Color.black.opacity(0.78) : .white)
                 .padding(.horizontal, 7)
                 .padding(.vertical, 4)
-                .background(Color.black.opacity(0.22), in: Capsule())
-                .overlay(Capsule().stroke(Color.white.opacity(0.22)))
+                .background(koHovering ? Color.white.opacity(0.82) : Color.black.opacity(0.16), in: Capsule())
+                .scaleEffect(koHovering ? 1.08 : 1)
+                .onHover { hovering in
+                    koHovering = hovering
+                    if hovering { NSCursor.disappearingItem.push() }
+                    else { NSCursor.pop() }
+                }
+                .animation(.easeInOut(duration: 0.10), value: koHovering)
         }
         .font(.system(size: 14, weight: .semibold))
         .foregroundStyle(.white)
-        .padding(.leading, 16)
-        .padding(.trailing, 12)
+        .padding(.leading, 8)
+        .padding(.trailing, 10)
         .frame(width: expandedWidth, height: expandedHeight, alignment: .trailing)
     }
 
