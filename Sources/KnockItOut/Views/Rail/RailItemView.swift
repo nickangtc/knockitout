@@ -9,6 +9,11 @@ struct RailItemView: View {
     @State private var draft = ""
     @State private var clickPulse = false
     @State private var koHovering = false
+    @State private var activationBorderProgress: CGFloat = 0
+    @State private var activationBorderOpacity: Double = 0
+    @State private var rainbowHueRotation: Double = 0
+    @State private var isActivationBorderRunning = false
+    @State private var activationBorderRunID = UUID()
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -70,8 +75,14 @@ struct RailItemView: View {
         HStack(spacing: 0) {
             RailClickSurface(
                 onSingleClick: {
+                    let shouldRunActivationBorder = !item.isActive
                     performClickPulse()
                     withAnimation(.easeInOut(duration: 0.10)) { store.toggleActive(id: item.id) }
+                    if shouldRunActivationBorder {
+                        runActivationBorder()
+                    } else {
+                        stopActivationBorder()
+                    }
                 },
                 onDoubleClick: {
                     performClickPulse()
@@ -97,9 +108,34 @@ struct RailItemView: View {
                     endPoint: .leading
                 )
             )
-            .overlay(Capsule().stroke(Color.white.opacity(item.isActive ? 0.86 : 0.34), lineWidth: item.isActive ? 2.6 : 1))
+            .overlay(Capsule().stroke(Color.white.opacity(borderOpacity), lineWidth: item.isActive && !isActivationBorderRunning ? 2.6 : 1))
+            .overlay(activationBorder)
             .shadow(color: color.opacity(item.isActive ? 0.72 : 0.38), radius: item.isActive ? 20 : 12)
             .shadow(color: color.opacity(0.28), radius: 8)
+    }
+
+    private var activationBorder: some View {
+        GeometryReader { proxy in
+            let radius = min(proxy.size.width, proxy.size.height) / 2
+            RoundedRectangle(cornerRadius: radius, style: .continuous)
+                .trim(from: 0, to: activationBorderProgress)
+                .stroke(
+                    AngularGradient(
+                        colors: [.red, .orange, .yellow, .green, .cyan, .blue, .purple, .red],
+                        center: .center
+                    ),
+                    style: StrokeStyle(lineWidth: 3.2, lineCap: .round, lineJoin: .round)
+                )
+                .hueRotation(.degrees(rainbowHueRotation))
+                .opacity(activationBorderOpacity)
+                .shadow(color: .white.opacity(activationBorderOpacity * 0.55), radius: 5)
+        }
+        .allowsHitTesting(false)
+    }
+
+    private var borderOpacity: Double {
+        if item.isActive { return isActivationBorderRunning ? 0 : 0.86 }
+        return 0.34
     }
 
     private var bubble: some View {
@@ -220,6 +256,38 @@ struct RailItemView: View {
         withAnimation(.easeOut(duration: 0.08)) { clickPulse = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.11) {
             withAnimation(.easeInOut(duration: 0.14)) { clickPulse = false }
+        }
+    }
+
+    private func runActivationBorder() {
+        let runID = UUID()
+        activationBorderRunID = runID
+        activationBorderProgress = 0
+        activationBorderOpacity = 1
+        rainbowHueRotation = 0
+        isActivationBorderRunning = true
+
+        withAnimation(.linear(duration: 0.58)) {
+            activationBorderProgress = 1
+            rainbowHueRotation = 360
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.58) {
+            guard activationBorderRunID == runID else { return }
+            withAnimation(.easeOut(duration: 0.16)) {
+                isActivationBorderRunning = false
+            }
+            withAnimation(.easeOut(duration: 0.24)) {
+                activationBorderOpacity = 0
+            }
+        }
+    }
+
+    private func stopActivationBorder() {
+        activationBorderRunID = UUID()
+        isActivationBorderRunning = false
+        withAnimation(.easeOut(duration: 0.12)) {
+            activationBorderOpacity = 0
         }
     }
 
