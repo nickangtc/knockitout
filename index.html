@@ -63,6 +63,197 @@
       max-width: 720px;
     }
 
+    .showcase {
+      display: grid;
+      width: min(100%, 320px);
+      margin: 0 auto 1.75rem;
+      justify-items: end;
+    }
+
+    .showcase-list {
+      display: grid;
+      gap: 0.5rem;
+      width: 100%;
+      justify-items: end;
+    }
+
+    .showcase-item {
+      --accent: rgb(163, 199, 245);
+      --accent-soft: rgba(163, 199, 245, 0.68);
+      --accent-glow: rgba(163, 199, 245, 0.28);
+      --expanded-width: 220px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.55rem;
+      width: 50px;
+      height: 50px;
+      overflow: hidden;
+      border-radius: 999px;
+      color: #fff;
+      background:
+        radial-gradient(circle at calc(100% - 32px) 34%, rgba(255, 255, 255, 0.94), transparent 0.62rem),
+        linear-gradient(270deg, var(--accent), var(--accent-soft), rgba(255, 255, 255, 0.08));
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.34) inset,
+        0 0 18px var(--accent-glow),
+        0 14px 30px var(--accent-glow);
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      user-select: none;
+      transform-origin: right center;
+      transition:
+        width 180ms ease-in-out,
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        background 180ms ease;
+      will-change: width, transform;
+    }
+
+    .showcase-item:hover,
+    .showcase-item:focus-visible,
+    .showcase-item.is-active {
+      width: var(--expanded-width);
+      transform: translateX(-2px);
+    }
+
+    .showcase-item.is-clicking {
+      transform: translateX(-2px) scale(1.07);
+      transition-duration: 90ms;
+    }
+
+    .showcase-item.is-active {
+      box-shadow:
+        0 0 0 2.6px rgba(255, 255, 255, 0.86) inset,
+        0 0 22px var(--accent-glow),
+        0 14px 34px var(--accent-glow);
+    }
+
+    .showcase-item::before {
+      content: "";
+      flex: 0 0 30px;
+      order: 2;
+      width: 30px;
+      height: 30px;
+      margin-right: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.96), var(--accent) 52%, var(--accent-soft) 100%);
+      box-shadow:
+        0 0 0 1.1px rgba(255, 255, 255, 0.42),
+        0 0 10px var(--accent-glow),
+        0 0 22px var(--accent-glow);
+    }
+
+    .showcase-item.is-active::before {
+      box-shadow:
+        0 0 0 2.8px rgba(255, 255, 255, 0.94),
+        0 0 0 6px var(--accent-glow),
+        0 0 22px var(--accent-glow);
+    }
+
+    .showcase-runner {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .showcase-runner rect {
+      fill: none;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+      stroke-dasharray: 0 1;
+      stroke-dashoffset: 0;
+      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.58));
+    }
+
+    .showcase-item.is-running .showcase-runner {
+      opacity: 1;
+    }
+
+    .showcase-item.is-running .showcase-runner rect {
+      animation: rainbow-trim 620ms linear;
+    }
+
+    .showcase-title {
+      min-width: 0;
+      flex: 1 1 auto;
+      max-width: 178px;
+      overflow: hidden;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateX(10px) scale(0.96);
+      transition: opacity 140ms ease, transform 160ms ease;
+    }
+
+    .showcase-ko {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.16);
+      padding: 0.2rem 0.46rem;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      opacity: 0;
+      transform: translateX(8px) scale(0.96);
+      transition: opacity 140ms ease, transform 160ms ease, background 120ms ease, color 120ms ease;
+    }
+
+    .showcase-item:hover .showcase-title,
+    .showcase-item:hover .showcase-ko,
+    .showcase-item:focus-visible .showcase-title,
+    .showcase-item:focus-visible .showcase-ko,
+    .showcase-item.is-active .showcase-title,
+    .showcase-item.is-active .showcase-ko {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+
+    .showcase-ko:hover {
+      background: rgba(255, 255, 255, 0.82);
+      color: rgba(0, 0, 0, 0.78);
+    }
+
+    @keyframes rainbow-trim {
+      0% {
+        stroke-dasharray: 0 1;
+        stroke-dashoffset: 0;
+      }
+
+      72% {
+        stroke-dasharray: 1 1;
+        stroke-dashoffset: 0;
+      }
+
+      100% {
+        stroke-dasharray: 1 1;
+        stroke-dashoffset: -1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .showcase-item,
+      .showcase-title,
+      .showcase-ko {
+        transition: none;
+      }
+
+      .showcase-item.is-running::after {
+        animation: none;
+      }
+    }
+
     h1 {
       margin: 0;
       font-size: clamp(3.5rem, 12vw, 8rem);
@@ -114,6 +305,31 @@
 
   <main>
     <section class="hero" aria-labelledby="hero-title">
+      <div class="showcase" aria-label="Sample current items">
+        <div class="showcase-list">
+          <div class="showcase-item showcase-item--active" role="button" tabindex="0" aria-pressed="true"
+            aria-label="Finish landing page"
+            style="--accent: rgb(179, 219, 189); --accent-soft: rgba(179, 219, 189, 0.68); --accent-glow: rgba(179, 219, 189, 0.28); --expanded-width: 212px;">
+            <span class="showcase-title">Finish landing page</span>
+            <span class="showcase-ko">KO</span>
+          </div>
+          <div class="showcase-item" role="button" tabindex="0" aria-pressed="false" aria-label="Polish rail motion"
+            style="--accent: rgb(194, 173, 237); --accent-soft: rgba(194, 173, 237, 0.68); --accent-glow: rgba(194, 173, 237, 0.28); --expanded-width: 208px;">
+            <span class="showcase-title">Polish rail motion</span>
+            <span class="showcase-ko">KO</span>
+          </div>
+          <div class="showcase-item" role="button" tabindex="0" aria-pressed="false" aria-label="Tidy hero copy"
+            style="--accent: rgb(224, 171, 199); --accent-soft: rgba(224, 171, 199, 0.68); --accent-glow: rgba(224, 171, 199, 0.28); --expanded-width: 184px;">
+            <span class="showcase-title">Tidy hero copy</span>
+            <span class="showcase-ko">KO</span>
+          </div>
+          <div class="showcase-item" role="button" tabindex="0" aria-pressed="false" aria-label="Refine hover state"
+            style="--accent: rgb(235, 199, 140); --accent-soft: rgba(235, 199, 140, 0.68); --accent-glow: rgba(235, 199, 140, 0.28); --expanded-width: 204px;">
+            <span class="showcase-title">Refine hover state</span>
+            <span class="showcase-ko">KO</span>
+          </div>
+        </div>
+      </div>
       <p>Knock It Out exists to help you declare what you opened your computer to do, so you knock those things out
         instead of getting distracted by all the shiny things.</p>
       <a class="cta" href="https://github.com/nickangtc/knockitout" aria-label="Download from GitHub">
@@ -126,7 +342,72 @@
     </section>
   </main>
 
-  <footer>Made by <a href="https://nickang.com">Nick Ang</a> for focused people.</footer>
+  <footer>Made by <a href="https://nickang.com">Nick Ang</a> for humans to focus.</footer>
+
+  <script>
+    (() => {
+      const items = [...document.querySelectorAll('.showcase-item')];
+      const pulseDuration = 220;
+      const runnerDuration = 620;
+
+      const runner = (index) => `
+        <svg class="showcase-runner" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="showcase-runner-${index}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ff4d4d"/><stop offset="0.17" stop-color="#ffb347"/>
+              <stop offset="0.34" stop-color="#fff45c"/><stop offset="0.5" stop-color="#64f58d"/>
+              <stop offset="0.67" stop-color="#48d8ff"/><stop offset="0.84" stop-color="#7770ff"/>
+              <stop offset="1" stop-color="#ff5ee1"/>
+            </linearGradient>
+          </defs>
+          <rect x="3" y="3" width="94" height="94" rx="47" pathLength="1" stroke="url(#showcase-runner-${index})"/>
+        </svg>`;
+
+      const setPressed = (item, pressed) => {
+        item.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+      };
+
+      const restartClass = (item, className) => {
+        item.classList.remove(className);
+        void item.offsetWidth;
+        item.classList.add(className);
+      };
+
+      const pulse = (item) => {
+        clearTimeout(item._pulseTimer);
+        restartClass(item, 'is-clicking');
+        item._pulseTimer = window.setTimeout(() => item.classList.remove('is-clicking'), pulseDuration);
+      };
+
+      const runBorder = (item) => {
+        clearTimeout(item._runnerTimer);
+        restartClass(item, 'is-running');
+        item._runnerTimer = window.setTimeout(() => item.classList.remove('is-running'), runnerDuration);
+      };
+
+      const toggle = (item) => {
+        const willBeActive = !item.classList.contains('is-active');
+        pulse(item);
+        runBorder(item);
+        item.classList.toggle('is-active', willBeActive);
+        item.classList.remove('showcase-item--active');
+        setPressed(item, willBeActive);
+      };
+
+      items.forEach((item, index) => {
+        item.insertAdjacentHTML('afterbegin', runner(index));
+        if (item.classList.contains('showcase-item--active')) item.classList.add('is-active');
+
+        item.addEventListener('click', () => toggle(item));
+        item.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggle(item);
+          }
+        });
+      });
+    })();
+  </script>
 </body>
 
 </html>
