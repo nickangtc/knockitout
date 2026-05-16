@@ -4,6 +4,10 @@ import SwiftUI
 struct RailItemView: View {
     @ObservedObject var store: KnockItemStore
     let item: KnockItem
+    var isDragLifted: Bool = false
+    var onDragBegan: (() -> Void)?
+    var onDragMoved: ((CGFloat) -> Void)?
+    var onDragEnded: (() -> Void)?
     @State private var hovering = false
     @State private var editing = false
     @State private var draft = ""
@@ -18,7 +22,8 @@ struct RailItemView: View {
 
     var body: some View {
         railElement
-        .scaleEffect(clickPulse ? 1.07 : 1.0, anchor: .trailing)
+        .scaleEffect(isDragLifted ? 1.05 : (clickPulse ? 1.07 : 1.0), anchor: .trailing)
+        .shadow(color: .black.opacity(isDragLifted ? 0.25 : 0), radius: isDragLifted ? 12 : 0, y: isDragLifted ? 4 : 0)
         .frame(height: railElementHeight)
         .help(item.title)
         .accessibilityLabel(item.title)
@@ -28,11 +33,14 @@ struct RailItemView: View {
             railClickSurface
         }
         .onHover { isHovering in
-            withAnimation(.easeInOut(duration: 0.16)) { hovering = isHovering }
+            if !isDragLifted {
+                withAnimation(.easeInOut(duration: 0.16)) { hovering = isHovering }
+            }
         }
         .animation(.easeInOut(duration: 0.18), value: hovering)
         .animation(.easeInOut(duration: 0.18), value: item.isActive)
         .animation(.easeOut(duration: 0.10), value: clickPulse)
+        .animation(.easeInOut(duration: 0.2), value: isDragLifted)
     }
 
     private var isExpanded: Bool { hovering || editing || item.isActive }
@@ -87,7 +95,10 @@ struct RailItemView: View {
                 onDoubleClick: {
                     performClickPulse()
                     beginEditing()
-                }
+                },
+                onDragBegan: onDragBegan,
+                onDragMoved: onDragMoved,
+                onDragEnded: onDragEnded
             )
             .frame(width: isExpanded ? max(44, expandedWidth - 50) : 50, height: railElementHeight)
 

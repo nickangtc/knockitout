@@ -2,7 +2,12 @@ import SwiftUI
 
 struct RailView: View {
     @ObservedObject var store: KnockItemStore
-    @State private var draggingID: UUID?
+    @State private var draggingItemID: UUID?
+    @State private var dragOffset: CGFloat = 0
+    @State private var sourceIndex: Int = 0
+    @State private var currentDestIndex: Int = 0
+
+    private let itemSlotHeight: CGFloat = 64
 
     var body: some View {
         GeometryReader { proxy in
@@ -10,17 +15,17 @@ struct RailView: View {
                 ScrollView(showsIndicators: false) {
                     LazyVStack(alignment: .trailing, spacing: 8) {
                         ForEach(store.items) { item in
-                            RailItemView(store: store, item: item)
-                                .opacity(draggingID == item.id ? 0.55 : 1)
-                                .draggable(item) { railDragPreview(item.title) }
-                                .dropDestination(for: KnockItem.self) { dropped, _ in
-                                    guard let first = dropped.first, let target = store.items.firstIndex(where: { $0.id == item.id }) else { return false }
-                                    store.moveItem(id: first.id, toIndex: target)
-                                    draggingID = nil
-                                    return true
-                                } isTargeted: { targeted in
-                                    if targeted { draggingID = item.id }
-                                }
+                            let isDragging = draggingItemID == item.id
+                            RailItemView(
+                                store: store,
+                                item: item,
+                                isDragLifted: isDragging,
+                                onDragBegan: { beginDrag(item: item) },
+                                onDragMoved: { delta in updateDrag(delta: delta) },
+                                onDragEnded: { endDrag() }
+                            )
+                            .offset(y: isDragging ? dragOffset : shiftOffset(for: item))
+                            .zIndex(isDragging ? 1 : 0)
                         }
                     }
                 }
@@ -40,7 +45,54 @@ struct RailView: View {
         .animation(.easeInOut(duration: 0.16), value: store.lastUndo?.id)
     }
 
-    private func railDragPreview(_ title: String) -> some View {
-        Text(title).lineLimit(1).padding(8).background(.black.opacity(0.8), in: Capsule()).foregroundStyle(.white)
+    private func beginDrag(item: KnockItem) {
+        guard let idx = store.items.firstIndex(where: { $0.id == item.id }) else { return }
+        draggingItemID = item.id
+        sourceIndex = idx
+        currentDestIndex = idx
+        dragOffset = 0
+    }
+
+    private func updateDrag(delta: CGFloat) {
+        dragOffset = delta
+        let newDest = clampedDestinationIndex()
+        if newDest != currentDestIndex {
+            withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.7)) {
+                currentDestIndex = newDest
+            }
+        }
+    }
+
+    private func endDrag() {
+        guard let dragID = draggingItemID else { return }
+        let dest = currentDestIndex
+        let src = sourceIndex
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            if dest != src {
+                store.moveItem(id: dragID, toIndex: dest)
+            }
+            draggingItemID = nil
+            dragOffset = 0
+        }
+        sourceIndex = 0
+        currentDestIndex = 0
+    }
+
+    private func clampedDestinationIndex() -> Int {
+        let rawDest = sourceIndex + Int(round(dragOffset / itemSlotHeight))
+        return min(max(rawDest, 0), store.items.count - 1)
+    }
+
+    private func shiftOffset(for item: KnockItem) -> CGFloat {
+        guard let dragID = draggingItemID,
+              dragID != item.id,
+              let thisIdx = store.items.firstIndex(where: { $0.id == item.id }) else { return 0 }
+
+        if sourceIndex < currentDestIndex && thisIdx > sourceIndex && thisIdx <= currentDestIndex {
+            return -itemSlotHeight
+        } else if sourceIndex > currentDestIndex && thisIdx >= currentDestIndex && thisIdx < sourceIndex {
+            return itemSlotHeight
+        }
+        return 0
     }
 }
