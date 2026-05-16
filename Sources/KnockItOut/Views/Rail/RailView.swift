@@ -64,11 +64,12 @@ struct RailView: View {
     }
 
     private func endDrag() {
+        guard let dragID = draggingItemID else { return }
         let dest = currentDestIndex
         let src = sourceIndex
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             if dest != src {
-                store.moveItem(id: store.items[src].id, toIndex: dest)
+                store.moveItem(id: dragID, toIndex: dest)
             }
             draggingItemID = nil
             dragOffset = 0
